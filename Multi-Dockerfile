@@ -1,0 +1,24 @@
+# Stage-1 (Build)
+FROM eclipse-temurin:17-jdk AS builder
+
+WORKDIR /app
+
+COPY src/Main.java .
+
+COPY quotes.txt .
+
+RUN javac -d /app Main.java
+
+RUN jar cfe app.jar Main *.class
+
+# Stage-2 (Runtime)
+FROM gcr.io/distroless/java17-debian13
+
+WORKDIR /app
+
+COPY --from=builder /app/app.jar .
+COPY --from=builder /app/quotes.txt .
+
+EXPOSE 8000
+
+CMD ["java","-jar","app.jar"]
